@@ -1,11 +1,10 @@
 import requests
 import youtube_dl
-#from datetime import datetime, timedelta
 import datetime
 
 # Constants
-CLIENT_ID = '37cirs6k7z558qen4cdu9gtigpk7vt'
-AUTH_TOKEN = 'Bearer 7u952e7nrxzx2wtyj724iihiq8ghfl'
+CLIENT_ID = 'private'
+AUTH_TOKEN = 'Bearer private'
 API_URL = 'https://api.twitch.tv/helix/clips'
 
 def twitch_api_request(params):
@@ -44,7 +43,7 @@ if __name__ == '__main__':
     # User Inputs
     #iGame_id = get_input("Please enter the Game ID (numeric): ",
     #                                             lambda x: x.isdigit() and int(x) > 0)
-    iGame_id = int(21779)
+    iGame_id = int(21779) # For test purposes hardcoded
     iNum_days = get_input("Please enter the past x days (max. 7): ",
                                                  lambda x: x.isdigit() and 0 < int(x) < 8)
     iNum_vids = get_input("Please Enter the number of Videos you want to get (between 1 and 10): ",
