@@ -5,6 +5,7 @@ __pycache__/
 
 # Testzwecke
 Videos/
+*test.py
 
 # IDE
 .idea/

@@ -1,31 +1,28 @@
-import requests
-import random
+import youtube_dl
+from langdetect import detect
 
-with open("valid_proxies.txt", "r") as f:
-    proxies = f.read().split("\n")
-proxy = random.choice(proxies)
-print("Proxy = %s" % proxy)
+# Define the filter function
+def title_filter(info_dict):
+    # Check if the video title is in English or German
+    title = info_dict.get('title', '')
+    language = detect(title)
+    if language == 'en' or language == 'de':
+        return None
+    else:
+        video_title = info_dict.get('title', info_dict.get('id', 'video'))
+        return '%s is probably not in your target language, skipping ..' % video_title
 
-# Choose a proxy from your list of proxies
-proxy = f"http://{proxy}"
-
-# Example URL to test
-url = "http://httpbin.org/ip"
-
-# Set up the proxy in the requests library
-proxies = {
-    "http": proxy,
-    "https": proxy
+# Set up youtube_dl options
+ydl_opts = {
+    'format': 'best',
+    'match_filter': title_filter
 }
 
-try:
-    # Make a request using the proxy
-    response = requests.get(url, proxies=proxies, timeout=5)
-    
-    # Check if the request was successful
-    if response.status_code == 200:
-        print("Proxy routing works. Your IP:", response.json()["origin"])
-    else:
-        print("Proxy routing failed.")
-except requests.exceptions.RequestException as e:
-    print("Proxy routing failed. Error:", e)
+# Initialize YoutubeDL with options
+ydl = youtube_dl.YoutubeDL(ydl_opts)
+
+# URL of a Twitch clip
+clip_url = 'https://www.twitch.tv/recrent/clip/RelatedGoodBarracudaBudStar-vWSXBoL7CcITXsLr'
+
+# Download video
+ydl.download([clip_url])
