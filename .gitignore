@@ -6,6 +6,13 @@ __pycache__/
 # Testzwecke
 Videos/
 
+# IDE
+.idea/
+
+# Virtual Environment
+Scripts/
+pyvenv.cfg
+
 # C extensions
 *.so
 

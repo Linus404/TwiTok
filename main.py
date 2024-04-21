@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 import os
 
 ## Params
-url = "https://www.twitch.tv/directory/category/league-of-legends/clips?range=24hr"
+game = "league-of-legends"
+url = f"https://www.twitch.tv/directory/category/{game}/clips?range=24hr"
 num_clips = 6
 
 ## Clear old Videos
@@ -25,20 +26,20 @@ def clean_up():
     else:
         print(f"[MAIN] Der Ordner vom {path} (3d ago) ist nicht vorhanden und wurde gegebenfalls schon gelöscht.")
 
+def my_hook(d):
+    if d['status'] == 'finished':
+        print('[YDL] Done downloading')
+
 
 if __name__ == '__main__':
 
+    ## Delete the Videos and Folder from 3 days ago 
     clean_up()
 
     ## Get List of Clips from scraper.py with parameters
     clip_list = get_clip_data(num_clips, url)
-    ## Create todays folder as save directory
 
     ## Download the Clips with ydl
-    def my_hook(d):
-        if d['status'] == 'finished':
-            print('[YDL] Done downloading')
-
     ydl_opts = {
         'format': 'best',
         'progress_hooks': [my_hook],
