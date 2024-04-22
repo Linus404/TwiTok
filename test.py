@@ -1,28 +1,50 @@
-import youtube_dl
-from langdetect import detect
+from subsai import *
+import moviepy.editor as mp
+import pysrt
+from datetime import timedelta
 
-# Define the filter function
-def title_filter(info_dict):
-    # Check if the video title is in English or German
-    title = info_dict.get('title', '')
-    language = detect(title)
-    if language == 'en' or language == 'de':
-        return None
-    else:
-        video_title = info_dict.get('title', info_dict.get('id', 'video'))
-        return '%s is probably not in your target language, skipping ..' % video_title
+def generate_subtitles(vid_file, name, lang):
+    ## Init
+    subs_ai = SubsAI()
+    tools = Tools()
 
-# Set up youtube_dl options
-ydl_opts = {
-    'format': 'best',
-    'match_filter': title_filter
-}
+    model = subs_ai.create_model('openai/whisper', {'model_type': 'base'})
+    subs = subs_ai.transcribe(vid_file, model)
+    tsubs = tools.translate(
+        subs,
+        f'{lang}',
+        'english'
+    )
+    tsubs.save(f'{name}.srt')
 
-# Initialize YoutubeDL with options
-ydl = youtube_dl.YoutubeDL(ydl_opts)
+    return None
 
-# URL of a Twitch clip
-clip_url = 'https://www.twitch.tv/recrent/clip/RelatedGoodBarracudaBudStar-vWSXBoL7CcITXsLr'
+def add_subtitles(vid_file, name):
+    video = mp.VideoFileClip(vid_file)
 
-# Download video
-ydl.download([clip_url])
+    subtitles = pysrt.open(f"{name}.srt")
+    subtitle_clips = []
+
+    for sub in subtitles:
+        start = sub.start.to_time()
+        end = sub.end.to_time()
+        text = sub.text
+        subtitle_clip = mp.TextClip(txt=text, fontsize=24, font='Arial', color='white')
+        subtitle_clip = subtitle_clip.set_position(('center', 0.8), relative=True)
+        
+        # Convert start and end times to seconds
+        start_seconds = (start.hour * 3600 + start.minute * 60 + start.second) + start.microsecond / 1000000
+        end_seconds = (end.hour * 3600 + end.minute * 60 + end.second) + end.microsecond / 1000000
+        
+        subtitle_clip = subtitle_clip.set_start(start_seconds).set_end(end_seconds)
+        subtitle_clips.append(subtitle_clip)
+
+    final_clips = [video] + subtitle_clips
+    final_clip = mp.CompositeVideoClip(final_clips)
+    final_clip.write_videofile(f"{name}_with_subtitles.mp4", fps=video.fps)
+    print("++++DEBUG Saved new Video")
+
+path = './Videos/2024-04-22_7d/Hänno ruft an ausm Krankenbett.mp4'
+name = 'Hänno ruft an ausm Krankenbett'
+generate_subtitles(path, name, 'german')
+add_subtitles(path, name)

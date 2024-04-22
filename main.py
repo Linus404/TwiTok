@@ -1,24 +1,16 @@
-from scraper import get_clip_data
-import youtube_dl as ydl
 from datetime import datetime, timedelta
-import os
+from scraper import get_clip_data
 from langdetect import detect
-
-## Params
-# URL
-game = "league-of-legends"
-timewindow = "24hr"
-url = f"https://www.twitch.tv/directory/category/{game}/clips?range={timewindow}"
-# Download
-num_clips = 6
-filter_lang = False # Also filters clips which have nicknames like "LUL 5K"
+import youtube_dl as ydl
+from vid_edit import *
+import os
 
 ## Clear old Videos
 def clean_up():
     today = datetime.now().date()
     termination = today - timedelta(days=3)
-    path = os.path.join(os.path.dirname(__file__), "Videos", termination.strftime("%Y-%m-%d"))
-    print(path)
+    strtime = termination.strftime("%Y-%m-%d")
+    path = os.path.join(os.path.dirname(__file__), "Videos", f"{strtime}_24hr")
     
     if os.path.exists(path):
         for root, dirs, files in os.walk(path, topdown=False):
@@ -48,6 +40,16 @@ def title_filter(info_dict):
 
 if __name__ == '__main__':
 
+    ## Params
+    # URL
+    game = "league-of-legends"
+    timewindow = "7d"
+    url = f"https://www.twitch.tv/directory/category/{game}/clips?range={timewindow}"
+    # Download
+    num_clips = 6
+    filter_lang = False # Also filters out clips which have nicknames like "LUL 5K"
+    translate_subs = False
+
     ## Delete the Videos and Folder from 3 days ago 
     clean_up()
 
@@ -71,3 +73,17 @@ if __name__ == '__main__':
 
     with ydl.YoutubeDL(ydl_opts) as ydlo:
         ydlo.download(clip_list)
+
+    if translate_subs:
+        ## Generate subtitles and merge with video
+        video_dir = os.path.join("Videos", f"{datetime.now().date()}_{timewindow}")
+        for video_file in os.listdir(video_dir):
+            if video_file.endswith(".mp4"):
+                video_path = os.path.join(video_dir, video_file)
+                video_name = os.path.splitext(video_file)[0]
+                language = detect(video_name)
+                subtitles = generate_subtitles(video_path, language)
+                final_clip = add_subtitles(video_path, subtitles)
+                output_path = os.path.join(video_dir, f"{video_name}_with_subtitles.mp4")
+                final_clip.write_videofile(output_path, fps=final_clip.fps)
+                os.remove(video_path)  # Remove the original video without subtitles
