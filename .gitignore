@@ -5,9 +5,13 @@ __pycache__/
 
 # Testzwecke
 Videos/
-*test.*
+*test*.*
+
 *.srt
 *.mp4
+
+# Alpha version
+*(outdated).*
 
 # IDE
 .idea/

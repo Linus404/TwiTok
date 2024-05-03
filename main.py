@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta
 from scraper import get_clip_data
+from subs_scraper import add_subs, rmv_wtrmrk
 from langdetect import detect
 import youtube_dl as ydl
-from vid_edit import *
 import os
+import glob
+
 
 ## Clear old Videos
 def clean_up():
@@ -19,9 +21,9 @@ def clean_up():
             for name in dirs:
                 os.rmdir(os.path.join(root, name))
         os.rmdir(path)
-        print(f"[MAIN] Der Ordner vom {path} (3d ago) wurde gelöscht.")
+        print(f"[MAIN] Der Ordner {path} (3d ago) wurde gelöscht.")
     else:
-        print(f"[MAIN] Der Ordner vom {path} (3d ago) ist nicht vorhanden und wurde gegebenfalls schon gelöscht.")
+        print(f"[MAIN] Der Ordner {path} (3d ago) ist nicht vorhanden und wurde gegebenfalls schon gelöscht.")
 
 ## Print when Video is finished downloading
 def my_hook(d):
@@ -43,12 +45,12 @@ if __name__ == '__main__':
     ## Params
     # URL
     game = "league-of-legends"
-    timewindow = "7d"
-    url = f"https://www.twitch.tv/directory/category/{game}/clips?range={timewindow}"
-    # Download
-    num_clips = 6
+    num_clips = 1
+    timewindow = "all"
+    subtitles = True
     filter_lang = False # Also filters out clips which have nicknames like "LUL 5K"
-    translate_subs = False
+
+    url = f"https://www.twitch.tv/directory/category/{game}/clips?range={timewindow}"
 
     ## Delete the Videos and Folder from 3 days ago 
     clean_up()
@@ -66,7 +68,7 @@ if __name__ == '__main__':
         }
     else: 
         ydl_opts = {
-            'format': 'best',
+            'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
             'progress_hooks': [my_hook],
             'outtmpl': f"/Videos/{datetime.now().date()}_{timewindow}/%(title)s.%(ext)s",
         }
@@ -74,16 +76,24 @@ if __name__ == '__main__':
     with ydl.YoutubeDL(ydl_opts) as ydlo:
         ydlo.download(clip_list)
 
-    if translate_subs:
+    if subtitles:
+        sub_folder = datetime.now().date()
         ## Generate subtitles and merge with video
         video_dir = os.path.join("Videos", f"{datetime.now().date()}_{timewindow}")
         for video_file in os.listdir(video_dir):
-            if video_file.endswith(".mp4"):
-                video_path = os.path.join(video_dir, video_file)
+            if video_file.endswith(".mp4") and "_subed" not in video_file and "_merged" not in video_file:
                 video_name = os.path.splitext(video_file)[0]
-                language = detect(video_name)
-                subtitles = generate_subtitles(video_path, language)
-                final_clip = add_subtitles(video_path, subtitles)
-                output_path = os.path.join(video_dir, f"{video_name}_with_subtitles.mp4")
-                final_clip.write_videofile(output_path, fps=final_clip.fps)
-                os.remove(video_path)  # Remove the original video without subtitles
+                # _subed can be removed if everything works properly there should exist files with _subed
+                if not os.path.exists(os.path.join(video_dir, f"{video_name}_subed.mp4")) and not os.path.exists(os.path.join(video_dir, f"{video_name}_merged.mp4")):
+                    language = detect(video_name)
+                    language = 'en'
+                    add_subs(f"{sub_folder}_{timewindow}", video_name, language)
+                    rmv_wtrmrk(video_dir, video_name)
+                    print(f"Finished adding Subtitles to {video_name}.")
+                    print("-------------------------------------------\n")
+
+        # Delete redundant files
+        os.chdir(os.path.join(".\\Videos", f"{str(sub_folder)}_{str(timewindow)}"))
+        del_list = glob.glob("*_subed.mp4")
+        for file in del_list:
+            os.remove(file)
