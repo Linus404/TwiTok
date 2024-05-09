@@ -10,8 +10,9 @@ Videos/
 *.srt
 *.mp4
 
-# Alpha version
-*(outdated).*
+# Includes Token
+get_token.py
+
 
 # IDE
 .idea/

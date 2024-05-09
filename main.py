@@ -1,10 +1,14 @@
-from datetime import datetime, timedelta
-from scraper import get_clip_data
-from subs_scraper import add_subs, rmv_wtrmrk
 from langdetect import detect
 import youtube_dl as ydl
 import os
 import glob
+import asyncio
+from datetime import datetime, timedelta
+
+from twitch_scraper import get_clip_data
+from subs_scraper import add_subs, rmv_wtrmrk
+from send_vids import sv_main
+
 
 
 ## Clear old Videos
@@ -45,7 +49,7 @@ if __name__ == '__main__':
     ## Params
     # URL
     game = "league-of-legends"
-    num_clips = 1
+    num_clips = 2
     timewindow = "all"
     subtitles = True
     filter_lang = False # Also filters out clips which have nicknames like "LUL 5K"
@@ -90,10 +94,12 @@ if __name__ == '__main__':
                     add_subs(f"{sub_folder}_{timewindow}", video_name, language)
                     rmv_wtrmrk(video_dir, video_name)
                     print(f"Finished adding Subtitles to {video_name}.")
-                    print("-------------------------------------------\n")
+                    print("\n-------------------------------------------\n")
 
         # Delete redundant files
         os.chdir(os.path.join(".\\Videos", f"{str(sub_folder)}_{str(timewindow)}"))
         del_list = glob.glob("*_subed.mp4")
         for file in del_list:
             os.remove(file)
+
+    asyncio.run(sv_main())

@@ -225,11 +225,14 @@ def rmv_wtrmrk(video_dir: str, name: str) -> None:
         upper_vid = og_vid.crop(x1=0, y1=0, x2=width, y2=height//2)
         lower_vid = sub_vid.crop(x1=0, y1=height//2, x2=width, y2=height)
 
+        # Remove the audio from the lower clip
+        lower_vid = lower_vid.without_audio()
+
         # Combine the upper and lower clips vertically
         final_clips = clips_array([[upper_vid], [lower_vid]])
 
         # Write the final clip to a new Full HD video file
-        final_clips.write_videofile(f"{path}_merged.mp4", codec="libx264", preset="slow", audio_codec="aac", audio_bitrate="5000k")
+        final_clips.write_videofile(f"{path}_merged.mp4", codec="libx264", preset="slow")
 
         # Close the video clips
         og_vid.close()
