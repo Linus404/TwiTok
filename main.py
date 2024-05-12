@@ -1,18 +1,30 @@
-from langdetect import detect
-import youtube_dl as ydl
-import os
-import glob
-import asyncio
 from datetime import datetime, timedelta
+import youtube_dl as ydl
+from telegram import Bot
+import unicodedata
+import logging
+import asyncio
+import glob
+import os
 
+from get_token import get_token
 from twitch_scraper import get_clip_data
 from subs_scraper import add_subs, rmv_wtrmrk
-from send_vids import sv_main
 
+base_folder = os.getcwd()
+var_folder = datetime.now().date()
 
+#region Utils
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
-## Clear old Videos
-def clean_up():
+def clean_up() -> None:
+    """
+    Delete the 24h folder from 3 days ago.
+    """
     today = datetime.now().date()
     termination = today - timedelta(days=3)
     strtime = termination.strftime("%Y-%m-%d")
@@ -25,81 +37,101 @@ def clean_up():
             for name in dirs:
                 os.rmdir(os.path.join(root, name))
         os.rmdir(path)
-        print(f"[MAIN] Der Ordner {path} (3d ago) wurde gelöscht.")
+        print(f"\n\n[MAIN] Der Ordner {path} (3d ago) wurde gelöscht.")
     else:
-        print(f"[MAIN] Der Ordner {path} (3d ago) ist nicht vorhanden und wurde gegebenfalls schon gelöscht.")
+        print(f"\n\n[MAIN] Der Ordner {path} (3d ago) ist nicht vorhanden und wurde gegebenfalls schon gelöscht.")
+#endregion
 
-## Print when Video is finished downloading
+#region Download
 def my_hook(d):
     if d['status'] == 'finished':
         print('[YDL] Done downloading')
 
-## Check if the video title is in English or German
 def title_filter(info_dict):
     title = info_dict.get('title', '')
-    language = detect(title)
-    if language == 'en' or language == 'de':
+    if all(ord(char) < 128 for char in title):
+        info_dict['title'] = title.rstrip()
         return None
     else:
-        video_title = info_dict.get('title', info_dict.get('id', 'video'))
-        return '%s is probably not in your target language, skipping ..' % video_title
+        video_title = unicodedata.normalize('NFKD', title).encode('ASCII', 'ignore').decode('ASCII')
+        info_dict['title'] = video_title.rstrip()
+        return None
 
-if __name__ == '__main__':
+def download(clip_list: list):
+    with ydl.YoutubeDL({
+        'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
+        'quiet': True,
+        'no_warnings': True,
+        'progress_hooks': [my_hook],
+        'outtmpl': f"/Videos/{datetime.now().date()}_{timewindow}/%(title)s.%(ext)s",
+        'match_filter': title_filter
+    }) as ydlo:
+        ydlo.download(clip_list)
+#endregion
 
-    ## Params
-    # URL
-    game = "league-of-legends"
-    num_clips = 2
-    timewindow = "all"
-    subtitles = True
-    filter_lang = False # Also filters out clips which have nicknames like "LUL 5K"
+#region Telegram
+async def send_merged(bot: Bot, video_path: str) -> None:
+    """
+    Sends all videos ending with "_merged.mp4" in the specified path to the chat.
+    """
+    try:
+        for filename in os.listdir(video_path):
+            if filename.endswith("_merged.mp4"):
+                video_file = os.path.join(video_path, filename)
+                await bot.send_video(chat_id=853162659, video=video_file, caption=filename)
+    except Exception as e:
+        logger.warning(f"An error occurred while sending the videos: {e}")
 
+async def send(path) -> None:
+    """Run the bot."""
+
+    bot = Bot(get_token())
+    await send_merged(bot, path)
+#endregion
+
+def add_subtitles(language) -> None:
+    video_dir = os.path.join("Videos", f"{var_folder}_{timewindow}")
+    for video_file in os.listdir(video_dir):
+        if video_file.endswith(".mp4") and "_merged" not in video_file:
+            video_name = os.path.splitext(video_file)[0]
+            if not os.path.exists(os.path.join(video_dir, f"{video_name}_merged.mp4")):
+                try:
+                    add_subs(f"{var_folder}_{timewindow}", video_name, language)
+                    rmv_wtrmrk(video_dir, video_name)
+                except Exception as e:
+                    logger.warning(f"Error adding Subtitles: {e}")
+                else:
+                    print(f"Finished adding Subtitles to {video_name}.")
+                    print("-------------------------------------------\n")
+
+    os.chdir(os.path.join(base_folder, video_dir))
+    del_list = glob.glob("*_subed.mp4")
+    for file in del_list:
+        os.remove(file)
+
+
+def main(game: str, num_clips: int, timewindow: str, subtitles: bool):
     url = f"https://www.twitch.tv/directory/category/{game}/clips?range={timewindow}"
+    video_dir = f"{var_folder}_{timewindow}"
 
-    ## Delete the Videos and Folder from 3 days ago 
     clean_up()
 
-    ## Get List of Clips from scraper.py with parameters
     clip_list = get_clip_data(num_clips, url)
+    download(clip_list)
+    add_subtitles("en")
+    #asyncio.run(send(os.path.join(base_folder, "Videos", video_dir)))
 
-    ## Download the Clips with ydl
-    if filter_lang:
-        ydl_opts = {
-            'format': 'best',
-            'progress_hooks': [my_hook],
-            'outtmpl': f"/Videos/{datetime.now().date()}_{timewindow}/%(title)s.%(ext)s",
-            'match_filter': title_filter
-        }
-    else: 
-        ydl_opts = {
-            'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
-            'progress_hooks': [my_hook],
-            'outtmpl': f"/Videos/{datetime.now().date()}_{timewindow}/%(title)s.%(ext)s",
-        }
+    """if not subtitles:
+        Send all videos
+    else:
+        Send all videos with buttons
+        Add subtitles
+        Send merged videos
+    """
+if __name__ == '__main__':
+    game = "league-of-legends"
+    num_clips = 1
+    timewindow = "30d"
+    subtitles = True
 
-    with ydl.YoutubeDL(ydl_opts) as ydlo:
-        ydlo.download(clip_list)
-
-    if subtitles:
-        sub_folder = datetime.now().date()
-        ## Generate subtitles and merge with video
-        video_dir = os.path.join("Videos", f"{datetime.now().date()}_{timewindow}")
-        for video_file in os.listdir(video_dir):
-            if video_file.endswith(".mp4") and "_subed" not in video_file and "_merged" not in video_file:
-                video_name = os.path.splitext(video_file)[0]
-                # _subed can be removed if everything works properly there should exist files with _subed
-                if not os.path.exists(os.path.join(video_dir, f"{video_name}_subed.mp4")) and not os.path.exists(os.path.join(video_dir, f"{video_name}_merged.mp4")):
-                    language = detect(video_name)
-                    language = 'en'
-                    add_subs(f"{sub_folder}_{timewindow}", video_name, language)
-                    rmv_wtrmrk(video_dir, video_name)
-                    print(f"Finished adding Subtitles to {video_name}.")
-                    print("\n-------------------------------------------\n")
-
-        # Delete redundant files
-        os.chdir(os.path.join(".\\Videos", f"{str(sub_folder)}_{str(timewindow)}"))
-        del_list = glob.glob("*_subed.mp4")
-        for file in del_list:
-            os.remove(file)
-
-    asyncio.run(sv_main())
+    main(game, num_clips, timewindow, subtitles)

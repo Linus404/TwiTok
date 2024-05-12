@@ -16,7 +16,7 @@ import os
 
 def add_subs(subfolder: str, name: str, lang: str) -> None:
 
-    print(f"Adding Subtitles to {name}...\n Please be patient")
+    print(f"[SUBS] Adding Subtitles to {name}")
     # Convert relative path to absolute path for file upload (necessary)
     base_path = os.getcwd()
     file_path = f"./Videos/{subfolder}/{name}"
@@ -28,8 +28,8 @@ def add_subs(subfolder: str, name: str, lang: str) -> None:
 
     # Configure Chrome options
     chrome_options = Options()
-    chrome_options.add_argument("--headless=new") #Disabel for debug
-    #chrome_options.add_argument("--disable-gpu") # GPU-Acceleration causes trouble
+    #chrome_options.add_argument("--headless=new") #Disabel for debug
+    #chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument(f"user-agent={random_user_agent}")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("window-size=1920,1080")
@@ -167,7 +167,6 @@ def add_subs(subfolder: str, name: str, lang: str) -> None:
     # Set the headers
     headers = {
         "Referer": driver.current_url,
-        # Add any other required headers
     }
 
     # Send a HEAD request to get the video headers
@@ -232,7 +231,7 @@ def rmv_wtrmrk(video_dir: str, name: str) -> None:
         final_clips = clips_array([[upper_vid], [lower_vid]])
 
         # Write the final clip to a new Full HD video file
-        final_clips.write_videofile(f"{path}_merged.mp4", codec="libx264", preset="slow")
+        final_clips.write_videofile(f"{path}_merged.mp4", preset="slow", verbose=False, logger=None)
 
         # Close the video clips
         og_vid.close()

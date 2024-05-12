@@ -8,7 +8,7 @@ import os
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
-#logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 async def send_videos(bot: Bot, video_path: str) -> None:
@@ -24,14 +24,9 @@ async def send_videos(bot: Bot, video_path: str) -> None:
     except Exception as e:
         logger.warning(f"An error occurred while sending the videos: {e}")
 
-async def sv_main() -> None:
+async def sv_main(path) -> None:
     """Run the bot."""
-
-    cwd = os.getcwd() # TwiTok/src
-    #base_folder = os.path.dirname(cwd) # TwiTok
-    #video_path = os.path.join(base_folder, video_path)
-    """I don't know why but cwd is the absolute path of the video dir"""
 
     bot_token = get_token()
     bot = Bot(bot_token)
-    await send_videos(bot, cwd)
+    await send_videos(bot, path)

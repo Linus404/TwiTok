@@ -14,7 +14,7 @@ def get_clip_data(num_clips, url):
 
     # Configure Chrome options
     chrome_options = Options()
-    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument(f"user-agent={random_user_agent}")
     chrome_options.add_argument("--no-sandbox")
