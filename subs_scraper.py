@@ -28,7 +28,7 @@ def add_subs(subfolder: str, name: str, lang: str) -> None:
 
     # Configure Chrome options
     chrome_options = Options()
-    #chrome_options.add_argument("--headless=new") #Disabel for debug
+    chrome_options.add_argument("--headless=new") #Disabel for debug
     #chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument(f"user-agent={random_user_agent}")
     chrome_options.add_argument("--no-sandbox")

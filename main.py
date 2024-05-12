@@ -119,7 +119,7 @@ def main(game: str, num_clips: int, timewindow: str, subtitles: bool):
     clip_list = get_clip_data(num_clips, url)
     download(clip_list)
     add_subtitles("en")
-    #asyncio.run(send(os.path.join(base_folder, "Videos", video_dir)))
+    asyncio.run(send(os.path.join(base_folder, "Videos", video_dir)))
 
     """if not subtitles:
         Send all videos
@@ -130,8 +130,8 @@ def main(game: str, num_clips: int, timewindow: str, subtitles: bool):
     """
 if __name__ == '__main__':
     game = "league-of-legends"
-    num_clips = 1
-    timewindow = "30d"
+    num_clips = 9
+    timewindow = "all"
     subtitles = True
 
     main(game, num_clips, timewindow, subtitles)
