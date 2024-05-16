@@ -54,9 +54,3 @@ def get_clip_data(num_clips, url):
     driver.quit()
 
     return clip_data
-
-# Print the clip information
-#for clip in clip_data:
- #   print(f"Alt Text: {clip['alt_text']}")
-  #  print(f"Link: {clip['link_href']}")
-   # print("---")

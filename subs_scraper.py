@@ -81,7 +81,7 @@ def add_subs(subfolder: str, name: str, lang: str, game: str) -> None:
         element.send_keys("French (France)")
     elif lang == "ko":
         element.send_keys("Korean")
-    elif lang == "zh":
+    elif lang == "zh" or "zh-tw" or "zh-cn" or "zh-sg" or "zh-hk":
         element.send_keys("Chinese")
     elif lang == "jp":
         element.send_keys("Japanese")

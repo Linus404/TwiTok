@@ -5,7 +5,8 @@ This Python script allows you to download the most viewed Twitch clips from a sp
 ## TODO
 - Add Licence
 - Update the skiping function when video already exists (and print comment)
-- currently only sends subed videos 
+- update clean up fun
+- add creator name and view count
 
 ## Prerequisites
 
