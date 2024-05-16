@@ -14,12 +14,12 @@ import time
 import os
 
 
-def add_subs(subfolder: str, name: str, lang: str) -> None:
+def add_subs(subfolder: str, name: str, lang: str, game: str) -> None:
 
     print(f"[SUBS] Adding Subtitles to {name}")
     # Convert relative path to absolute path for file upload (necessary)
     base_path = os.getcwd()
-    file_path = f"./Videos/{subfolder}/{name}"
+    file_path = f"Videos\\{game}\\{subfolder}\\{name}"
     absolute_path = os.path.abspath(os.path.join(base_path, file_path))
 
     today = datetime.now(timezone.utc).date()
@@ -214,6 +214,7 @@ def add_subs(subfolder: str, name: str, lang: str) -> None:
 
 def rmv_wtrmrk(video_dir: str, name: str) -> None:
     path = os.path.join(video_dir, name)
+    print("Removing Watermark >.<")
 
     try:
         og_vid = VideoFileClip(f"{path}.mp4")
