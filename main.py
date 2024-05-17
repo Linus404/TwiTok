@@ -2,11 +2,13 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Callb
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from datetime import datetime, timedelta
 import youtube_dl as ydl
-import unicodedata
+#import unicodedata
 import logging
 import asyncio
 import glob
 import os
+import sys
+import re
 
 from subs_scraper import add_subs, rmv_wtrmrk
 from get_token import get_telegram_token
@@ -55,12 +57,13 @@ def reset_script_state():
     # ...
 
     logger.info("Script state has been reset.")
-#endregion
 
-#region Download
-def my_hook(d):
-    if d['status'] == 'finished':
-        logger.info('[YDL] Done downloading')
+def handle_exception(exc_type, exc_value, exc_traceback):
+    """
+    Function to handle unhandled exceptions.
+    """
+    logger.error(f"Unhandled exception: {exc_value}", exc_info=(exc_type, exc_value, exc_traceback))
+    reset_script_state()
 
 """def title_filter(info_dict) -> None:
     title = info_dict.get('title', '')
@@ -72,14 +75,28 @@ def my_hook(d):
         info_dict['title'] = video_title.rstrip()
         return None"""
 
+def clean_title(info_dict):
+    """
+    Removes all non-alphanumeric characters from the title.
+    """
+    title = info_dict.get('title', '')
+    info_dict['title'] = re.sub(r'[.]+', '', title)
+    return None
+#endregion
+
+#region Download
+def my_hook(d):
+    if d['status'] == 'finished':
+        logger.info('[YDL] Done downloading')
+
 def download(clip_list: list, timewindow: str, game: str, subtitles: bool) -> None:
     with ydl.YoutubeDL({
         'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
         'quiet': True,
         'no_warnings': True,
         'progress_hooks': [my_hook],
-        'outtmpl': f"/Videos/{game}/{datetime.now().date()}_{timewindow}/%(title)s.%(ext)s"
-        #'match_filter': title_filter
+        'outtmpl': f"/Videos/{game}/{datetime.now().date()}_{timewindow}/%(title)s.%(ext)s",
+        'match_filter': clean_title #title_filter
     }) as ydlo:
         clip_info = get_clip_info(clip_list)
         # Iterate over every clip and add subtitles if enabled
@@ -87,7 +104,7 @@ def download(clip_list: list, timewindow: str, game: str, subtitles: bool) -> No
             try:
                 ydlo.download([clip['url']])
                 if subtitles:
-                    video_name = clip['title']
+                    video_name = clean_title(clip['title'])
                     language = clip['language']
                     add_subtitles(language, timewindow, game, video_name)
             except Exception as e:
@@ -106,7 +123,6 @@ def add_subtitles(language: str, timewindow: str, game: str, video_name: str) ->
                 logger.warning(f"Error adding Subtitles: {e}")
             else:
                 logger.info(f"Finished adding Subtitles to {video_name}.")
-                logger.info("-------------------------------------------\n")
 
     os.chdir(os.path.join(base_folder, video_dir))
     del_list = glob.glob("*_subed.mp4")
@@ -215,7 +231,8 @@ async def subtitles_chosen(update: Update, context: ContextTypes.DEFAULT_TYPE):
     game, num_clips, timewindow, subtitles = query.data.split("_")
 
     request_message = f"Processing your request for {game}, {num_clips} clip(s), {timewindow} timewindow, and subtitles={subtitles}"
-    await query.edit_message_text(text=request_message, reply_markup=None)
+
+    await query.edit_message_text(reply_markup=None, text=request_message)
 
     task = asyncio.create_task(run_main(game, int(num_clips), timewindow, subtitles == "True"))
     await task
@@ -225,16 +242,21 @@ async def send_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     state = USER_STATE.get(user_id, "start")
 
-    if state == "start":
-        await start_bot(update, context)
-    elif state == "game_chosen":
-        await game_chosen(update, context)
-    elif state == "num_clips_chosen":
-        await num_clips_chosen(update, context)
-    elif state == "timewindow_chosen":
-        await timewindow_chosen(update, context)
-    elif state == "subtitles_chosen":
-        await subtitles_chosen(update, context)
+    try:
+        if state == "start":
+            await start_bot(update, context)
+        elif state == "game_chosen":
+            await game_chosen(update, context)
+        elif state == "num_clips_chosen":
+            await num_clips_chosen(update, context)
+        elif state == "timewindow_chosen":
+            await timewindow_chosen(update, context)
+        elif state == "subtitles_chosen":
+            await subtitles_chosen(update, context)
+    except AttributeError:
+        # Reset the script state and simulate the /send command again
+        reset_script_state()
+        await send_command(update, context)
 #endregion
 
 #region Mains
@@ -277,4 +299,5 @@ def premain():
 #endregion
 
 if __name__ == '__main__':
+    sys.excepthook = handle_exception
     premain()
