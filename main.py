@@ -5,6 +5,7 @@ import youtube_dl as ydl
 #import unicodedata
 import logging
 import asyncio
+import shutil
 import glob
 import os
 import sys
@@ -28,23 +29,28 @@ logger = logging.getLogger(__name__)
 
 def clean_up() -> None:
     """
-    Delete the 24h folder from 3 days ago.
+    Delete folders inside game folders that are more than 3 days old.
     """
+    videos_dir = os.path.join(os.path.dirname(__file__), "Videos")
     today = datetime.now().date()
     termination = today - timedelta(days=3)
-    strtime = termination.strftime("%Y-%m-%d")
-    path = os.path.join(os.path.dirname(__file__), "Videos", f"{strtime}_24hr")
     
-    if os.path.exists(path):
-        for root, dirs, files in os.walk(path, topdown=False):
-            for name in files:
-                os.remove(os.path.join(root, name))
-            for name in dirs:
-                os.rmdir(os.path.join(root, name))
-        os.rmdir(path)
-        logger.info(f"\n\n[MAIN] Der Ordner {path} (3d ago) wurde gelöscht.")
-    else:
-        logger.info(f"\n\n[MAIN] Der Ordner {path} (3d ago) ist nicht vorhanden und wurde gegebenfalls schon gelöscht.")
+    for game_folder in os.listdir(videos_dir): # Iterate over all game folders
+        game_path = os.path.join(videos_dir, game_folder)
+        if os.path.isdir(game_path): # Only continue if element is folder
+            for date_folder in os.listdir(game_path): # Iterate over every date_timewindow folder
+                date_path = os.path.join(game_path, date_folder)
+                if os.path.isdir(date_path): # Only continue if element is folder
+                    try:
+                        folder_date_str = date_folder.split('_')[0]
+                        folder_date = datetime.strptime(folder_date_str, "%Y-%m-%d").date()
+                        if folder_date < termination:
+                            shutil.rmtree(date_path)
+                            logger.info(f"Obsolete folder {date_path} has been deleted.")
+                    except ValueError:
+                        logger.warning(f"\n\nInvalid date format for folder {date_path}. Will be skipped.")
+
+    logger.info(f"\n\nVideo folder cleanup completed.")
 
 def reset_script_state():
     """
@@ -274,7 +280,7 @@ async def run_main(game: str, num_clips: int, timewindow: str, subtitles: bool) 
 def main(game: str, num_clips: int, timewindow: str, subtitles: bool) -> None:
     url = f"https://www.twitch.tv/directory/category/{game}/clips?range={timewindow}"
 
-    clean_up()
+
 
     clip_list = get_clip_data(num_clips, url)
     download(clip_list, timewindow, game, subtitles)
@@ -283,6 +289,8 @@ def premain():
     """
     Make the user choose all options via Telegram buttons. 
     """
+    clean_up()
+    
     application = ApplicationBuilder().token(get_telegram_token()).build()
 
     application.add_handler(CommandHandler("send", send_command))
