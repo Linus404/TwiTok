@@ -14,13 +14,10 @@ import time
 import os
 
 
-def add_subs(subfolder: str, name: str, lang: str, game: str) -> None:
+def add_subs(name: str, lang: str, absolute_path) -> None:
 
     print(f"[SUBS] Adding Subtitles to {name}")
     # Convert relative path to absolute path for file upload (necessary)
-    base_path = os.getcwd()
-    file_path = f"Videos\\{game}\\{subfolder}\\{name}"
-    absolute_path = os.path.abspath(os.path.join(base_path, file_path))
 
     today = datetime.now(timezone.utc).date()
     ua = UserAgent(platforms='pc') # Create a UserAgent instance
@@ -52,7 +49,7 @@ def add_subs(subfolder: str, name: str, lang: str, game: str) -> None:
 
     # Accept TOS
     selector = 'button[data-testid="@component/terms-consent-modal/btn"]'
-    WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
+    WebDriverWait(driver, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
     element = driver.find_element(By.CSS_SELECTOR, selector)
     element.click()
     time.sleep(random.uniform(0.5, 1.0))
@@ -212,9 +209,8 @@ def add_subs(subfolder: str, name: str, lang: str, game: str) -> None:
     
 
 
-def rmv_wtrmrk(video_dir: str, name: str) -> None:
-    path = os.path.join(video_dir, name)
-    print("Removing Watermark >.<")
+def rmv_wtrmrk(path:str ) -> None:
+    print("Removing Watermark")
 
     try:
         og_vid = VideoFileClip(f"{path}.mp4")

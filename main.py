@@ -48,9 +48,9 @@ def clean_up() -> None:
                             shutil.rmtree(date_path)
                             logger.info(f"Obsolete folder {date_path} has been deleted.")
                     except ValueError:
-                        logger.warning(f"\n\nInvalid date format for folder {date_path}. Will be skipped.")
+                        logger.warning(f"Invalid date format for folder {date_path}. Will be skipped.")
 
-    logger.info(f"\n\nVideo folder cleanup completed.")
+    logger.info(f"Video folder cleanup completed.\n")
 
 def reset_script_state():
     """
@@ -85,9 +85,13 @@ def clean_title(info_dict):
     """
     Removes all non-alphanumeric characters from the title.
     """
-    title = info_dict.get('title', '')
-    info_dict['title'] = re.sub(r'[.]+', '', title)
-    return None
+    if type(info_dict) is str:
+        info_dict = re.sub(r'[.]+', '', info_dict).rstrip()
+        return info_dict
+    else:
+        title = info_dict.get('title', '')
+        info_dict['title'] = re.sub(r'[.]+', '', title).rstrip()
+        return None
 #endregion
 
 #region Download
@@ -96,12 +100,13 @@ def my_hook(d):
         logger.info('[YDL] Done downloading')
 
 def download(clip_list: list, timewindow: str, game: str, subtitles: bool) -> None:
+    output_path = os.path.join(base_folder, "Videos", game, f"{datetime.now().date()}_{timewindow}")
     with ydl.YoutubeDL({
         'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
         'quiet': True,
         'no_warnings': True,
         'progress_hooks': [my_hook],
-        'outtmpl': f"/Videos/{game}/{datetime.now().date()}_{timewindow}/%(title)s.%(ext)s",
+        'outtmpl': f"{output_path}/%(title)s.%(ext)s",
         'match_filter': clean_title #title_filter
     }) as ydlo:
         clip_info = get_clip_info(clip_list)
@@ -110,21 +115,24 @@ def download(clip_list: list, timewindow: str, game: str, subtitles: bool) -> No
             try:
                 ydlo.download([clip['url']])
                 if subtitles:
-                    video_name = clean_title(clip['title'])
+                    title = clean_title(clip["title"])
                     language = clip['language']
-                    add_subtitles(language, timewindow, game, video_name)
+                    add_subtitles(language, timewindow, game, title)
             except Exception as e:
                 logger.warning(f"Error downloading or adding subtitles for {clip['title']}: {e}")
 #endregion
 
 def add_subtitles(language: str, timewindow: str, game: str, video_name: str) -> None:
+    base_path = os.path.dirname(os.path.realpath(__file__))
     video_dir = os.path.join(f"Videos\\{game}", f"{var_folder}_{timewindow}")
+    absolute_path = os.path.abspath(os.path.join(base_path, video_dir))
     video_file = f"{video_name}.mp4"
-    if os.path.exists(os.path.join(video_dir, video_file)):
-        if not os.path.exists(os.path.join(video_dir, f"{video_name}_merged.mp4")):
+
+    if os.path.exists(os.path.join(absolute_path, video_file)):
+        if not os.path.exists(os.path.join(absolute_path, f"{video_name}_merged.mp4")):
             try:
-                add_subs(f"{var_folder}_{timewindow}", video_name, language, game)
-                rmv_wtrmrk(video_dir, video_name)
+                add_subs(video_name, language, f"{absolute_path}\\{video_name}")
+                rmv_wtrmrk(f"{absolute_path}\\{video_name}")
             except Exception as e:
                 logger.warning(f"Error adding Subtitles: {e}")
             else:
@@ -280,12 +288,10 @@ async def run_main(game: str, num_clips: int, timewindow: str, subtitles: bool) 
 def main(game: str, num_clips: int, timewindow: str, subtitles: bool) -> None:
     url = f"https://www.twitch.tv/directory/category/{game}/clips?range={timewindow}"
 
-
-
     clip_list = get_clip_data(num_clips, url)
     download(clip_list, timewindow, game, subtitles)
 
-def premain():
+def premain() -> None:
     """
     Make the user choose all options via Telegram buttons. 
     """

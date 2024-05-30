@@ -1,13 +1,13 @@
 import requests
-from get_token import get_twitch_token
+from get_token import get_twitch_token, get_client_id
 
 
 def get_clip_info(clip_list: list) -> list:
     """
     Takes a clip ID.\n
-    Returns the braodcaster name, language and viewcount.
+    Returns the braodcaster name, language, viewcount, title and url.
     """
-    CLIENT_ID = '37cirs6k7z558qen4cdu9gtigpk7vt'
+    CLIENT_ID = get_client_id()
     AUTH_TOKEN = get_twitch_token()
     API_URL = 'https://api.twitch.tv/helix/clips'
     clip_info_list = []

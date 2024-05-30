@@ -4,9 +4,9 @@ This Python script allows you to download the most viewed Twitch clips from a sp
 
 ## TODO
 - Update the skiping function when video already exists (and print comment)
-- update clean up fun
+- overall optimization
 - add creator name and view count
-- Replace twitch api with ydl data
+- remove buttons from final telegram message
 
 ## Prerequisites
 
@@ -27,17 +27,20 @@ Run the script with the following command:
 python main.py 
 ```
 
-Gamename, timewindow, number of clips and a language filter are hardcoded in lines 9-14 in main.py.
-
-This default command will download the top 6 most viewed Twitch clips for the game "League of Legends" from the past 24 hours
+This will host the telegram bot until the script is terminated. 
+The bot will send multiple questions which are answered with buttons.
+After the last answer the bot downloads and edits the videos. 
+When it's done it will send all videos.
 
 ## Output
 
-The script will create a folder in the directory where it is located, named with the current date and time frame (e.g., `Videos/2024-04-21_24hr`). It will automatically delete folders that are three days old to manage disk space efficiently.
+The log willbe displayed in the terminal.
 
 ## Disclaimer
 
-Please note that using this script may violate Twitch's terms of service. Use it responsibly and at your own risk.
+Please note that using this script may violate Twitch's terms of service. It is not intended to being used. It is only for educational and training purposes.
+
+veed.io sometimes get stuck at uploading the video and exporting. I have yet not found out why and how to fix. After some tries it just works again.
 
 ## License
 
