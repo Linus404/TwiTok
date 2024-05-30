@@ -12,7 +12,7 @@ import sys
 import re
 
 from subs_scraper import add_subs, rmv_wtrmrk
-from get_token import get_telegram_token
+from get_token import get_telegram_token, get_chat_id
 from twitch_scraper import get_clip_data
 from twitch_handler import get_clip_info
 
@@ -154,7 +154,7 @@ async def send_videos(video_path: str, subtitles: bool) -> None:
             for filename in os.listdir(video_path):
                 if filename.endswith("_merged.mp4"):
                     video_file = os.path.join(video_path, filename)
-                    await bot.send_video(chat_id=853162659, video=video_file, caption=filename)
+                    await bot.send_video(chat_id=get_chat_id(), video=video_file, caption=filename)
         except Exception as e:
             logger.warning(f"An error occurred while sending the videos: {e}")
     else:
@@ -162,7 +162,7 @@ async def send_videos(video_path: str, subtitles: bool) -> None:
             for filename in os.listdir(video_path):
                 if not filename.endswith("_merged.mp4"):
                     video_file = os.path.join(video_path, filename)
-                    await bot.send_video(chat_id=853162659, video=video_file, caption=filename)
+                    await bot.send_video(chat_id=get_chat_id(), video=video_file, caption=filename)
         except Exception as e:
             logger.warning(f"An error occurred while sending the videos: {e}")
 
