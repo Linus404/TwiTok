@@ -32,6 +32,11 @@ The bot will send multiple questions which are answered with buttons.
 After the last answer the bot downloads and edits the videos. 
 When it's done it will send all videos.
 
+Demo:
+https://github.com/Linus404/TwiTok/assets/138003283/d46d8415-0af1-4740-b107-bdb1bc2367ab
+
+
+
 ## Output
 
 The log willbe displayed in the terminal.
