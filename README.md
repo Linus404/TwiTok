@@ -1,46 +1,54 @@
 # Twitch Top Clips Downloader
 
-This Python script allows you to download the most viewed Twitch clips from a specific game within a specified time frame. It offers several parameters for customization, including the game, time window (e.g., 24 hours, 7 days), number of clips to download, and an optional filter to download videos with specific language titles. Subtitles are generated automatically (currently only available for english videos - a language recognition is needed)
+This Python script allows you to download the most viewed Twitch clips from a specific game within a specified time frame. It offers several parameters for customisation, including the game, the time window (e.g. 24 hours, 7 days) and the number of clips to download. Subtitles are automatically generated if selected. To save space, all video folders older than 3 days are automatically deleted.
 
 ## TODO
-- Update the skiping function when video already exists (and print comment)
-- overall optimization
-- add creator name and view count
-- remove buttons from final telegram message
+- Update skip function when video already exists (and print comment)
+- general optimisation
+- add creator name and number of views
+- remove buttons from final message
 
-## Prerequisites
+## Requirements
 
-- latest Python
-- Activation of a VPN is recommended to avoid potential IP bans.
+- Latest Python
+- Enabling a VPN is recommended to avoid possible IP bans.
+- A Telegram Bot
+- Twitch API access
 
 ## Setup
 
 1. Clone this repository to your local machine.
-2. Navigate to the directory where you cloned the repository.
+2. Navigate to the directory you cloned the repository to.
 3. Install the required dependencies using `pip install -r requirements.txt`.
+4. Open get_token.py and replace all the placeholders with your own tokens and IDs.
 
 ## Usage
 
-Run the script with the following command:
+Execute the script with the following command
 
 ```bash
 python main.py 
 ```
 
-This will host the telegram bot until the script is terminated. 
-The bot will send multiple questions which are answered with buttons.
-After the last answer the bot downloads and edits the videos. 
-When it's done it will send all videos.
+This will host the telegram bot until the script is terminated.  
+Send "/send" via telegram. The command is handled in main.py and doesn't need to be registered in Telegram.  
+Choose your settings by clicking on the buttons.  
+After choosing subtitles, the bot will take a while to download the videos and add subtitles if they are selected.  
+When it's done, it will send all videos via Telegram.  
+Once all the videos have been sent, you can start again or close the terminal to stop hosting.  
+
+https://github.com/Linus404/TwiTok/assets/138003283/d46d8415-0af1-4740-b107-bdb1bc2367ab
 
 ## Output
 
-The log willbe displayed in the terminal.
+The log is displayed in the terminal.
+The videos and settings will be sent via Telegram.
 
 ## Disclaimer
 
-Please note that using this script may violate Twitch's terms of service. It is not intended to being used. It is only for educational and training purposes.
+Please note that using this script may violate Twitch's or veed.io's terms of service. It is not intended to be used. It is for educational and training purposes only.
 
-veed.io sometimes get stuck at uploading the video and exporting. I have yet not found out why and how to fix. After some tries it just works again.
+veed.io sometimes hangs while uploading and exporting the video. I have not yet found out why and how to fix it. After a few tries it works again.
 
 ## License
 
