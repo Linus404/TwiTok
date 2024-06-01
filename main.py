@@ -27,10 +27,21 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
+def create_video_dir() -> None:
+    """
+    Create the 'Videos' directory if it doesn't exist.
+    """
+    # It can't be added to GitHub because it doesn't allow empty folder.
+    videos_dir = os.path.join(os.path.dirname(__file__), "Videos")
+    if not os.path.exists(videos_dir):
+        os.makedirs(videos_dir)
+        logger.info(f"Created directory: {videos_dir}")
+
 def clean_up() -> None:
     """
     Delete folders inside game folders that are more than 3 days old.
     """
+    create_video_dir()
     videos_dir = os.path.join(os.path.dirname(__file__), "Videos")
     today = datetime.now().date()
     termination = today - timedelta(days=3)
