@@ -12,12 +12,15 @@ This Python script allows you to download the most viewed Twitch clips from a sp
 
 - latest Python
 - Activation of a VPN is recommended to avoid potential IP bans.
+- A Telegram bot
+- Twitch API access
 
 ## Setup
 
 1. Clone this repository to your local machine.
 2. Navigate to the directory where you cloned the repository.
 3. Install the required dependencies using `pip install -r requirements.txt`.
+4. Open get_token.py and replace all placeholders with your own tokens and IDs
 
 ## Usage
 
@@ -28,15 +31,18 @@ python main.py
 ```
 
 This will host the telegram bot until the script is terminated. 
-The bot will send multiple questions which are answered with buttons.
-After the last answer the bot downloads and edits the videos. 
-When it's done it will send all videos.
+Send "/send" via Telegram. The command gets handled in main.py and doesn't need to be registered at Telegram.
+Then choose your settings by clicking the buttons.
+After choosing the subtitles, the bot will take a while to download the videos and add subtitles if selected.
+When it's done, it wil send them via Telegram.
+After all videos were send you can start over again or close the terminal to end the hosting.
 
 https://github.com/Linus404/TwiTok/assets/138003283/d46d8415-0af1-4740-b107-bdb1bc2367ab
 
 ## Output
 
-The log willbe displayed in the terminal.
+The log will be displayed in the terminal.
+The videos and settings are send via Telegram.
 
 ## Disclaimer
 
