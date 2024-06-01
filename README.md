@@ -1,12 +1,19 @@
 # Twitch Top Clips Downloader
 
-This Python script allows you to download the most viewed Twitch clips from a specific game within a specified time frame. It offers several parameters for customisation, including the game, the time window (e.g. 24 hours, 7 days) and the number of clips to download. Subtitles are automatically generated if selected. To save space, all video folders older than 3 days are automatically deleted.
+This Python script allows you to download the most viewed Twitch clips from a specific game within a specified time frame. It offers several parameters for customisation, including the game, the time window (e.g. 24 hours, 7 days) and the number of clips to download. Subtitles are automatically generated if selected. To save space, all video folders older than 3 days are automatically deleted.  
+
+## Compatibility
+
+This project has been tested on Windows 10, and its behavior on other platforms may vary. Contributions to improve compatibility on other platforms are welcome.
+
 
 ## TODO
+
 - Update skip function when video already exists (and print comment)
 - general optimisation
 - add creator name and number of views
 - remove buttons from final message
+- add cloud deployment (see issue #1)
 
 ## Requirements
 
