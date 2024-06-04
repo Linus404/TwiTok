@@ -46,6 +46,12 @@ Once all the videos have been sent, you can start again or close the terminal to
 
 https://github.com/Linus404/TwiTok/assets/138003283/d46d8415-0af1-4740-b107-bdb1bc2367ab
 
+For real-world use cases, you can check out the YouTube channels:  
+
+@MakiHighlights, who edits their videos for a more concise and engaging format.  
+@BlizzardGuides, who curates a collection of videos and uploads them in a single compilation, averaging between 200k and 300k views per video.
+
+
 ## Output
 
 The log is displayed in the terminal.
