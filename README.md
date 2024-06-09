@@ -10,10 +10,10 @@ This project has been tested on Windows 10, and its behavior on other platforms 
 ## TODO
 
 - Update skip function when video already exists (and print comment)
-- general optimisation
-- add creator name and number of views
+- general optimisation (like removing/fixing all the warnings)
+- add creator name and number of views in the clip
 - remove buttons from final message
-- add cloud deployment (see issue #1)
+- add cloud deployment (see issue #2)
 
 ## Requirements
 
