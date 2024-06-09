@@ -14,6 +14,7 @@ This project has been tested on Windows 10, and its behavior on other platforms 
 - add creator name and number of views in the clip
 - remove buttons from final message
 - add cloud deployment (see issue #2)
+- add option to download top clips from a streamer
 
 ## Requirements
 
